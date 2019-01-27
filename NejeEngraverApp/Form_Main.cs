@@ -61,7 +61,7 @@ namespace NejeEngraverApp
             AT_PAUSE
         }
 
-        private bool DEBUG;
+        private bool DEBUG = true;
 
         private bool Is_OnlyCN;
 
@@ -835,9 +835,9 @@ namespace NejeEngraverApp
             this.Adjust_Window();
             this.Init_window();
             this.auto_connect();
-            this.get_web_picture_list();
+            //this.get_web_picture_list();
             this.Load_Collection();
-            this.Check_update();
+            //this.Check_update();
             this.check_driver_is_exists();
             this.label_software_version.Text = "Software Version : " + "V4.0".ToString();
         }
@@ -899,6 +899,7 @@ namespace NejeEngraverApp
                         D3
                     };
                     this.serialPort1.Write(buffer, 0, 4);
+                    this.addText($" > 255 {D1} {D2} {D3}");
                 }
             }
             catch
@@ -922,6 +923,7 @@ namespace NejeEngraverApp
                     D6
                 };
                 this.serialPort1.Write(buffer, 0, 7);
+                this.addText($" > 255 {D1} {D2} {D3} {D4} {D5} {D6}");
             }
         }
 
@@ -1054,6 +1056,7 @@ namespace NejeEngraverApp
 
         public void decode(byte D1, byte D2, byte D3)
         {
+            this.addText($" < 255 {D1} {D2} {D3}");
             switch (D1)
             {
                 case 0:
@@ -1183,8 +1186,8 @@ namespace NejeEngraverApp
                         this.addText("Sending picture...");
                         this.serialPort1.Write(this.img_array_to_send, 0, this.img_array_to_send.Length);
                         this.addText("Sending complete !");
-                        this.addText("Verifying...");
-                        new Thread(new ThreadStart(this.UpLoadImageToServer)).Start();
+                        //this.addText("Verifying...");
+                        //new Thread(new ThreadStart(this.UpLoadImageToServer)).Start();
                     }
                     if (D2 == 1 && D3 == 1)
                     {
@@ -1192,8 +1195,8 @@ namespace NejeEngraverApp
                         this.addText("Sending picture at high speed...");
                         this.serialPort1.Write(this.img_array_to_send, 0, this.img_array_to_send.Length);
                         this.addText("Sending complete !");
-                        this.addText("Verifying...");
-                        new Thread(new ThreadStart(this.UpLoadImageToServer)).Start();
+                        //this.addText("Verifying...");
+                        //new Thread(new ThreadStart(this.UpLoadImageToServer)).Start();
                     }
                     if (!this.form_sending.IsDisposed)
                     {
@@ -1603,8 +1606,7 @@ namespace NejeEngraverApp
             try
             {
                 Bitmap bitmap = new Bitmap(((Array)e.Data.GetData(DataFormats.FileDrop)).GetValue(0).ToString());
-                image = new Bitmap(bitmap.Width, bitmap.Height, PixelFormat.Format24bppRgb);
-                Graphics.FromImage(image).DrawImage(bitmap, 0, 0);
+                image = bitmap.Clone(new Rectangle(0, 0, bitmap.Width, bitmap.Height), PixelFormat.Format24bppRgb);
             }
             catch
             {
@@ -2012,7 +2014,7 @@ namespace NejeEngraverApp
             this.form_sending = new Form_Loading();
             this.form_sending.TopMost = true;
             this.form_sending.Location = new Point(base.Location.X + (base.Width - this.form_sending.Width) / 2, base.Location.Y + (base.Height - this.form_sending.Height) / 2);
-            this.form_sending.Show();
+            //this.form_sending.Show();
             switch (this.MACHINE_MODE)
             {
                 case Form_Main.MODE.OLD_KBOT:
@@ -2089,43 +2091,43 @@ namespace NejeEngraverApp
                         this.img_array_to_send = new byte[num5 * this.img_carve.Height];
                         if (this.DEBUG)
                         {
-                            this.addText("位置X：" + this.Location_x.ToString());
+                            this.addText("Location_x: " + this.Location_x.ToString());
                         }
                         if (this.DEBUG)
                         {
-                            this.addText("位置Y：" + this.Location_y.ToString());
+                            this.addText("Location_y: " + this.Location_y.ToString());
                         }
                         if (this.DEBUG)
                         {
-                            this.addText("图片宽度：" + (num5 * 8).ToString());
+                            this.addText("num5 * 8: " + (num5 * 8).ToString());
                         }
                         if (this.DEBUG)
                         {
-                            this.addText("图片高度：" + this.img_carve.Height.ToString());
+                            this.addText("img_carve.Height: " + this.img_carve.Height.ToString());
                         }
                         if (this.DEBUG)
                         {
-                            this.addText("数据长度是：" + this.img_array_to_send.Length.ToString() + "字节");
+                            this.addText("img_array_to_send.Length: " + this.img_array_to_send.Length.ToString() + "B");
                         }
                         Bitmap bitmap3 = new Bitmap(num5 * 8, this.img_carve.Height, PixelFormat.Format24bppRgb);
-                        Graphics expr_4A0 = Graphics.FromImage(bitmap3);
-                        expr_4A0.Clear(Color.White);
-                        expr_4A0.DrawImage(this.img_carve, 0, 0);
+                        Graphics graphics = Graphics.FromImage(bitmap3);
+                        graphics.Clear(Color.White);
+                        graphics.DrawImage(this.img_carve, 0, 0);
                         BitmapData bitmapData3 = bitmap3.LockBits(new Rectangle(0, 0, num5 * 8, this.img_carve.Height), ImageLockMode.ReadOnly, bitmap3.PixelFormat);
-                        IntPtr arg_505_0 = bitmapData3.Scan0;
+                        IntPtr pixelData = bitmapData3.Scan0;
                         int num6 = bitmapData3.Stride * bitmapData3.Height;
                         byte[] array3 = new byte[num6];
-                        Marshal.Copy(arg_505_0, array3, 0, num6);
-                        for (int m = 0; m < bitmap3.Height; m++)
+                        Marshal.Copy(pixelData, array3, 0, num6);
+                        for (int x = 0; x < bitmap3.Height; x++)
                         {
-                            for (int n = 0; n < bitmap3.Width; n++)
+                            for (int y = 0; y < bitmap3.Width; y++)
                             {
-                                int num7 = m * bitmapData3.Stride + n * 3;
+                                int num7 = x * bitmapData3.Stride + y * 3;
                                 if (array3[num7] == 0)
                                 {
                                     byte[] expr_544_cp_0 = this.img_array_to_send;
-                                    int expr_544_cp_1 = m * num5 + n / 8;
-                                    expr_544_cp_0[expr_544_cp_1] |= (byte)(128 >> n % 8);
+                                    int expr_544_cp_1 = x * num5 + y / 8;
+                                    expr_544_cp_0[expr_544_cp_1] |= (byte)(128 >> y % 8);
                                 }
                             }
                         }
@@ -2835,7 +2837,7 @@ namespace NejeEngraverApp
             this.components = new Container();
             this.textBox1 = new TextBox();
             this.label_Connection = new Label();
-            this.serialPort1 = new SerialPort(this.components);
+            this.serialPort1 = new System.IO.Ports.SerialPort(this.components);
             this.button_driver = new Button();
             this.trackBar_carveTime = new TrackBar();
             this.label_trackbar = new Label();
@@ -2932,115 +2934,145 @@ namespace NejeEngraverApp
             this.timer_check_send_pic = new System.Windows.Forms.Timer(this.components);
             this.statusStrip1 = new StatusStrip();
             this.StatusLabel_state = new ToolStripStatusLabel();
-            ((ISupportInitialize)this.trackBar_carveTime).BeginInit();
+            ((ISupportInitialize)(this.trackBar_carveTime)).BeginInit();
             this.tabControl1.SuspendLayout();
             this.tabPage0.SuspendLayout();
             this.tabPage1.SuspendLayout();
-            ((ISupportInitialize)this.pictureBox2).BeginInit();
+            ((ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.contextMenu1.SuspendLayout();
-            ((ISupportInitialize)this.pictureBox3).BeginInit();
-            ((ISupportInitialize)this.pictureBox4).BeginInit();
-            ((ISupportInitialize)this.pictureBox5).BeginInit();
-            ((ISupportInitialize)this.pictureBox6).BeginInit();
-            ((ISupportInitialize)this.pictureBox7).BeginInit();
-            ((ISupportInitialize)this.pictureBox8).BeginInit();
-            ((ISupportInitialize)this.pictureBox9).BeginInit();
-            ((ISupportInitialize)this.pictureBox10).BeginInit();
-            ((ISupportInitialize)this.pictureBox11).BeginInit();
-            ((ISupportInitialize)this.pictureBox12).BeginInit();
-            ((ISupportInitialize)this.pictureBox13).BeginInit();
+            ((ISupportInitialize)(this.pictureBox3)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox4)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox5)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox6)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox7)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox8)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox9)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox10)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox11)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox12)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox13)).BeginInit();
             this.tabPage3.SuspendLayout();
-            ((ISupportInitialize)this.pictureBox14).BeginInit();
+            ((ISupportInitialize)(this.pictureBox14)).BeginInit();
             this.contextMenu2.SuspendLayout();
-            ((ISupportInitialize)this.pictureBox15).BeginInit();
-            ((ISupportInitialize)this.pictureBox16).BeginInit();
-            ((ISupportInitialize)this.pictureBox17).BeginInit();
-            ((ISupportInitialize)this.pictureBox18).BeginInit();
-            ((ISupportInitialize)this.pictureBox19).BeginInit();
-            ((ISupportInitialize)this.pictureBox20).BeginInit();
-            ((ISupportInitialize)this.pictureBox21).BeginInit();
-            ((ISupportInitialize)this.pictureBox22).BeginInit();
-            ((ISupportInitialize)this.pictureBox23).BeginInit();
-            ((ISupportInitialize)this.pictureBox24).BeginInit();
-            ((ISupportInitialize)this.pictureBox25).BeginInit();
+            ((ISupportInitialize)(this.pictureBox15)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox16)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox17)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox18)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox19)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox20)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox21)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox22)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox23)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox24)).BeginInit();
+            ((ISupportInitialize)(this.pictureBox25)).BeginInit();
             this.tabPage2.SuspendLayout();
             this.panel_Laser_PWM.SuspendLayout();
-            ((ISupportInitialize)this.trackBar_PWM).BeginInit();
+            ((ISupportInitialize)(this.trackBar_PWM)).BeginInit();
             this.panel_control.SuspendLayout();
-            ((ISupportInitialize)this.numericUpDown_times).BeginInit();
+            ((ISupportInitialize)(this.numericUpDown_times)).BeginInit();
             this.panel_direction.SuspendLayout();
             this.groupBox_InsertText.SuspendLayout();
             this.panel_size.SuspendLayout();
-            ((ISupportInitialize)this.pictureBox1).BeginInit();
+            ((ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
-            base.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // textBox1
+            // 
             this.textBox1.AllowDrop = true;
-            this.textBox1.Location = new Point(14, 53);
+            this.textBox1.Location = new System.Drawing.Point(14, 53);
             this.textBox1.Margin = new Padding(3, 5, 3, 5);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
             this.textBox1.ScrollBars = ScrollBars.Vertical;
-            this.textBox1.Size = new Size(198, 267);
+            this.textBox1.Size = new System.Drawing.Size(198, 267);
             this.textBox1.TabIndex = 0;
-            this.label_Connection.Location = new Point(67, 17);
+            // 
+            // label_Connection
+            // 
+            this.label_Connection.Location = new System.Drawing.Point(67, 17);
             this.label_Connection.Name = "label_Connection";
-            this.label_Connection.Size = new Size(141, 15);
+            this.label_Connection.Size = new System.Drawing.Size(141, 15);
             this.label_Connection.TabIndex = 2;
             this.label_Connection.Text = "CONNECTING";
+            // 
+            // serialPort1
+            // 
             this.serialPort1.BaudRate = 57600;
             this.serialPort1.DtrEnable = true;
             this.serialPort1.ReadBufferSize = 512000;
             this.serialPort1.WriteBufferSize = 512000;
-            this.serialPort1.DataReceived += new SerialDataReceivedEventHandler(this.serialPort1_DataReceived);
-            this.button_driver.Location = new Point(166, 12);
+            this.serialPort1.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(this.serialPort1_DataReceived);
+            // 
+            // button_driver
+            // 
+            this.button_driver.Location = new System.Drawing.Point(166, 12);
             this.button_driver.Name = "button_driver";
-            this.button_driver.Size = new Size(46, 23);
+            this.button_driver.Size = new System.Drawing.Size(46, 23);
             this.button_driver.TabIndex = 3;
             this.button_driver.Text = "驱动";
             this.button_driver.UseVisualStyleBackColor = true;
             this.button_driver.Visible = false;
-            this.button_driver.Click += new EventHandler(this.button_driver_Click);
-            this.trackBar_carveTime.Location = new Point(26, 530);
-            this.trackBar_carveTime.Maximum = 100;
+            this.button_driver.Click += new System.EventHandler(this.button_driver_Click);
+            // 
+            // trackBar_carveTime
+            // 
+            this.trackBar_carveTime.Location = new System.Drawing.Point(26, 530);
+            this.trackBar_carveTime.Maximum = 250;
             this.trackBar_carveTime.Name = "trackBar_carveTime";
-            this.trackBar_carveTime.Size = new Size(696, 45);
+            this.trackBar_carveTime.Size = new System.Drawing.Size(696, 45);
             this.trackBar_carveTime.TabIndex = 4;
-            this.trackBar_carveTime.Scroll += new EventHandler(this.trackBar_carveTime_Scroll);
+            this.trackBar_carveTime.Scroll += new System.EventHandler(this.trackBar_carveTime_Scroll);
             this.trackBar_carveTime.MouseDown += new MouseEventHandler(this.trackBar_carveTime_MouseDown);
             this.trackBar_carveTime.MouseUp += new MouseEventHandler(this.trackBar_carveTime_MouseUp);
+            // 
+            // label_trackbar
+            // 
             this.label_trackbar.AutoSize = true;
-            this.label_trackbar.Location = new Point(721, 534);
+            this.label_trackbar.Location = new System.Drawing.Point(721, 534);
             this.label_trackbar.Name = "label_trackbar";
-            this.label_trackbar.Size = new Size(87, 15);
+            this.label_trackbar.Size = new System.Drawing.Size(87, 15);
             this.label_trackbar.TabIndex = 5;
             this.label_trackbar.Text = "Burning Time :";
+            // 
+            // tabControl1
+            // 
             this.tabControl1.Controls.Add(this.tabPage0);
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage2);
-            this.tabControl1.Location = new Point(230, 12);
+            this.tabControl1.Location = new System.Drawing.Point(230, 12);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new Size(853, 607);
+            this.tabControl1.Size = new System.Drawing.Size(853, 607);
             this.tabControl1.TabIndex = 6;
             this.tabControl1.Selected += new TabControlEventHandler(this.tabControl1_Selected);
+            // 
+            // tabPage0
+            // 
             this.tabPage0.Controls.Add(this.webBrowser1);
-            this.tabPage0.Location = new Point(4, 24);
+            this.tabPage0.Location = new System.Drawing.Point(4, 24);
             this.tabPage0.Name = "tabPage0";
             this.tabPage0.Padding = new Padding(3);
-            this.tabPage0.Size = new Size(845, 579);
+            this.tabPage0.Size = new System.Drawing.Size(845, 579);
             this.tabPage0.TabIndex = 0;
             this.tabPage0.Text = "主页";
             this.tabPage0.UseVisualStyleBackColor = true;
+            // 
+            // webBrowser1
+            // 
             this.webBrowser1.Dock = DockStyle.Fill;
-            this.webBrowser1.Location = new Point(3, 3);
-            this.webBrowser1.MinimumSize = new Size(20, 20);
+            this.webBrowser1.Location = new System.Drawing.Point(3, 3);
+            this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
             this.webBrowser1.Name = "webBrowser1";
             this.webBrowser1.ScriptErrorsSuppressed = true;
-            this.webBrowser1.Size = new Size(839, 573);
+            this.webBrowser1.Size = new System.Drawing.Size(839, 573);
             this.webBrowser1.TabIndex = 0;
-            this.webBrowser1.Url = new Uri("", UriKind.Relative);
+            this.webBrowser1.Url = new System.Uri("", System.UriKind.Relative);
+            // 
+            // tabPage1
+            // 
             this.tabPage1.Controls.Add(this.label_filter);
             this.tabPage1.Controls.Add(this.comboBox_Alt);
             this.tabPage1.Controls.Add(this.label_page);
@@ -3058,208 +3090,261 @@ namespace NejeEngraverApp
             this.tabPage1.Controls.Add(this.pictureBox11);
             this.tabPage1.Controls.Add(this.pictureBox12);
             this.tabPage1.Controls.Add(this.pictureBox13);
-            this.tabPage1.Location = new Point(4, 22);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new Padding(3);
-            this.tabPage1.Size = new Size(845, 581);
+            this.tabPage1.Size = new System.Drawing.Size(845, 581);
             this.tabPage1.TabIndex = 1;
             this.tabPage1.Text = "网络";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // label_filter
+            // 
             this.label_filter.AutoSize = true;
-            this.label_filter.Location = new Point(748, 12);
+            this.label_filter.Location = new System.Drawing.Point(748, 12);
             this.label_filter.Name = "label_filter";
-            this.label_filter.Size = new Size(37, 15);
+            this.label_filter.Size = new System.Drawing.Size(37, 15);
             this.label_filter.TabIndex = 33;
             this.label_filter.Text = "Filter:";
+            // 
+            // comboBox_Alt
+            // 
             this.comboBox_Alt.DropDownStyle = ComboBoxStyle.DropDownList;
-            this.comboBox_Alt.Font = new Font("Arial", 9f, FontStyle.Regular, GraphicsUnit.Point, 0);
+            this.comboBox_Alt.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboBox_Alt.FormattingEnabled = true;
-            this.comboBox_Alt.Items.AddRange(new object[]
-            {
-                "ALL"
-            });
-            this.comboBox_Alt.Location = new Point(751, 32);
+            this.comboBox_Alt.Items.AddRange(new object[] {
+            "ALL"});
+            this.comboBox_Alt.Location = new System.Drawing.Point(751, 32);
             this.comboBox_Alt.Name = "comboBox_Alt";
-            this.comboBox_Alt.Size = new Size(88, 23);
+            this.comboBox_Alt.Size = new System.Drawing.Size(88, 23);
             this.comboBox_Alt.TabIndex = 32;
-            this.comboBox_Alt.SelectedIndexChanged += new EventHandler(this.comboBox_Alt_SelectedIndexChanged);
+            this.comboBox_Alt.SelectedIndexChanged += new System.EventHandler(this.comboBox_Alt_SelectedIndexChanged);
+            // 
+            // label_page
+            // 
             this.label_page.AutoSize = true;
-            this.label_page.Location = new Point(780, 282);
+            this.label_page.Location = new System.Drawing.Point(780, 282);
             this.label_page.Name = "label_page";
-            this.label_page.Size = new Size(24, 15);
+            this.label_page.Size = new System.Drawing.Size(24, 15);
             this.label_page.TabIndex = 15;
             this.label_page.Text = "1/X";
-            this.button_next_page.BackgroundImage = NejeEngraverApp.Properties.Form_Main.button_next_page;
+            // 
+            // button_next_page
+            // 
+            this.button_next_page.BackgroundImage = global::NejeEngraverApp.Properties.Form_Main.button_next_page;
             this.button_next_page.BackgroundImageLayout = ImageLayout.Zoom;
-            this.button_next_page.Location = new Point(774, 323);
+            this.button_next_page.Location = new System.Drawing.Point(774, 323);
             this.button_next_page.Name = "button_next_page";
-            this.button_next_page.Size = new Size(41, 119);
+            this.button_next_page.Size = new System.Drawing.Size(41, 119);
             this.button_next_page.TabIndex = 14;
             this.button_next_page.UseVisualStyleBackColor = true;
-            this.button_next_page.Click += new EventHandler(this.button_next_page_Click);
-            this.button_pre_page.BackgroundImage = NejeEngraverApp.Properties.Form_Main.button_pre_page;
+            this.button_next_page.Click += new System.EventHandler(this.button_next_page_Click);
+            // 
+            // button_pre_page
+            // 
+            this.button_pre_page.BackgroundImage = global::NejeEngraverApp.Properties.Form_Main.button_pre_page;
             this.button_pre_page.BackgroundImageLayout = ImageLayout.Zoom;
-            this.button_pre_page.Location = new Point(774, 138);
+            this.button_pre_page.Location = new System.Drawing.Point(774, 138);
             this.button_pre_page.Name = "button_pre_page";
-            this.button_pre_page.Size = new Size(41, 119);
+            this.button_pre_page.Size = new System.Drawing.Size(41, 119);
             this.button_pre_page.TabIndex = 13;
             this.button_pre_page.UseVisualStyleBackColor = true;
-            this.button_pre_page.Click += new EventHandler(this.button_pre_page_Click);
+            this.button_pre_page.Click += new System.EventHandler(this.button_pre_page_Click);
+            // 
+            // pictureBox2
+            // 
             this.pictureBox2.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox2.ContextMenuStrip = this.contextMenu1;
             this.pictureBox2.Cursor = Cursors.Hand;
-            this.pictureBox2.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox2;
-            this.pictureBox2.Location = new Point(7, 12);
+            this.pictureBox2.InitialImage = global::NejeEngraverApp.Properties.Form_Main.pictureBox2;
+            this.pictureBox2.Location = new System.Drawing.Point(7, 12);
             this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new Size(180, 180);
+            this.pictureBox2.Size = new System.Drawing.Size(180, 180);
             this.pictureBox2.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox2.TabIndex = 1;
             this.pictureBox2.TabStop = false;
             this.pictureBox2.Tag = "1";
             this.pictureBox2.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox2.Click += new EventHandler(this.pictureBox_load_Click);
-            this.contextMenu1.Items.AddRange(new ToolStripItem[]
-            {
-                this.menu_add_collection
-            });
+            this.pictureBox2.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // contextMenu1
+            // 
+            this.contextMenu1.Items.AddRange(new ToolStripItem[] {
+            this.menu_add_collection});
             this.contextMenu1.Name = "contextMenu1";
-            this.contextMenu1.Size = new Size(200, 26);
+            this.contextMenu1.Size = new System.Drawing.Size(188, 26);
             this.contextMenu1.ItemClicked += new ToolStripItemClickedEventHandler(this.contextMenu1_ItemClicked);
+            // 
+            // menu_add_collection
+            // 
             this.menu_add_collection.Name = "menu_add_collection";
-            this.menu_add_collection.Size = new Size(199, 22);
+            this.menu_add_collection.Size = new System.Drawing.Size(187, 22);
             this.menu_add_collection.Text = "Add to My Collection";
+            // 
+            // pictureBox3
+            // 
             this.pictureBox3.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox3.ContextMenuStrip = this.contextMenu1;
             this.pictureBox3.Cursor = Cursors.Hand;
-            this.pictureBox3.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox3;
-            this.pictureBox3.Location = new Point(193, 12);
+            this.pictureBox3.InitialImage = global::NejeEngraverApp.Properties.Form_Main.pictureBox3;
+            this.pictureBox3.Location = new System.Drawing.Point(193, 12);
             this.pictureBox3.Name = "pictureBox3";
-            this.pictureBox3.Size = new Size(180, 180);
+            this.pictureBox3.Size = new System.Drawing.Size(180, 180);
             this.pictureBox3.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox3.TabIndex = 2;
             this.pictureBox3.TabStop = false;
             this.pictureBox3.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox3.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox3.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox4
+            // 
             this.pictureBox4.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox4.ContextMenuStrip = this.contextMenu1;
             this.pictureBox4.Cursor = Cursors.Hand;
-            this.pictureBox4.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox4;
-            this.pictureBox4.Location = new Point(379, 12);
+            this.pictureBox4.Location = new System.Drawing.Point(379, 12);
             this.pictureBox4.Name = "pictureBox4";
-            this.pictureBox4.Size = new Size(180, 180);
+            this.pictureBox4.Size = new System.Drawing.Size(180, 180);
             this.pictureBox4.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox4.TabIndex = 3;
             this.pictureBox4.TabStop = false;
             this.pictureBox4.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox4.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox4.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox5
+            // 
             this.pictureBox5.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox5.ContextMenuStrip = this.contextMenu1;
             this.pictureBox5.Cursor = Cursors.Hand;
-            this.pictureBox5.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox5;
-            this.pictureBox5.Location = new Point(565, 12);
+            this.pictureBox5.Location = new System.Drawing.Point(565, 12);
             this.pictureBox5.Name = "pictureBox5";
-            this.pictureBox5.Size = new Size(180, 180);
+            this.pictureBox5.Size = new System.Drawing.Size(180, 180);
             this.pictureBox5.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox5.TabIndex = 4;
             this.pictureBox5.TabStop = false;
             this.pictureBox5.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox5.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox5.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox6
+            // 
             this.pictureBox6.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox6.ContextMenuStrip = this.contextMenu1;
             this.pictureBox6.Cursor = Cursors.Hand;
-            this.pictureBox6.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox6;
-            this.pictureBox6.Location = new Point(7, 198);
+            this.pictureBox6.InitialImage = global::NejeEngraverApp.Properties.Form_Main.pictureBox6;
+            this.pictureBox6.Location = new System.Drawing.Point(7, 198);
             this.pictureBox6.Name = "pictureBox6";
-            this.pictureBox6.Size = new Size(180, 180);
+            this.pictureBox6.Size = new System.Drawing.Size(180, 180);
             this.pictureBox6.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox6.TabIndex = 5;
             this.pictureBox6.TabStop = false;
             this.pictureBox6.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox6.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox6.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox7
+            // 
             this.pictureBox7.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox7.ContextMenuStrip = this.contextMenu1;
             this.pictureBox7.Cursor = Cursors.Hand;
-            this.pictureBox7.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox7;
-            this.pictureBox7.Location = new Point(193, 198);
+            this.pictureBox7.InitialImage = global::NejeEngraverApp.Properties.Form_Main.pictureBox7;
+            this.pictureBox7.Location = new System.Drawing.Point(193, 198);
             this.pictureBox7.Name = "pictureBox7";
-            this.pictureBox7.Size = new Size(180, 180);
+            this.pictureBox7.Size = new System.Drawing.Size(180, 180);
             this.pictureBox7.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox7.TabIndex = 6;
             this.pictureBox7.TabStop = false;
             this.pictureBox7.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox7.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox7.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox8
+            // 
             this.pictureBox8.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox8.ContextMenuStrip = this.contextMenu1;
             this.pictureBox8.Cursor = Cursors.Hand;
-            this.pictureBox8.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox8;
-            this.pictureBox8.Location = new Point(379, 198);
+            this.pictureBox8.InitialImage = global::NejeEngraverApp.Properties.Form_Main.pictureBox8;
+            this.pictureBox8.Location = new System.Drawing.Point(379, 198);
             this.pictureBox8.Name = "pictureBox8";
-            this.pictureBox8.Size = new Size(180, 180);
+            this.pictureBox8.Size = new System.Drawing.Size(180, 180);
             this.pictureBox8.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox8.TabIndex = 7;
             this.pictureBox8.TabStop = false;
             this.pictureBox8.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox8.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox8.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox9
+            // 
             this.pictureBox9.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox9.ContextMenuStrip = this.contextMenu1;
             this.pictureBox9.Cursor = Cursors.Hand;
-            this.pictureBox9.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox9;
-            this.pictureBox9.Location = new Point(565, 198);
+            this.pictureBox9.InitialImage = global::NejeEngraverApp.Properties.Form_Main.pictureBox9;
+            this.pictureBox9.Location = new System.Drawing.Point(565, 198);
             this.pictureBox9.Name = "pictureBox9";
-            this.pictureBox9.Size = new Size(180, 180);
+            this.pictureBox9.Size = new System.Drawing.Size(180, 180);
             this.pictureBox9.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox9.TabIndex = 8;
             this.pictureBox9.TabStop = false;
             this.pictureBox9.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox9.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox9.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox10
+            // 
             this.pictureBox10.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox10.ContextMenuStrip = this.contextMenu1;
             this.pictureBox10.Cursor = Cursors.Hand;
-            this.pictureBox10.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox10;
-            this.pictureBox10.Location = new Point(7, 384);
+            this.pictureBox10.Location = new System.Drawing.Point(7, 384);
             this.pictureBox10.Name = "pictureBox10";
-            this.pictureBox10.Size = new Size(180, 180);
+            this.pictureBox10.Size = new System.Drawing.Size(180, 180);
             this.pictureBox10.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox10.TabIndex = 9;
             this.pictureBox10.TabStop = false;
             this.pictureBox10.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox10.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox10.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox11
+            // 
             this.pictureBox11.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox11.ContextMenuStrip = this.contextMenu1;
             this.pictureBox11.Cursor = Cursors.Hand;
-            this.pictureBox11.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox11;
-            this.pictureBox11.Location = new Point(193, 384);
+            this.pictureBox11.InitialImage = global::NejeEngraverApp.Properties.Form_Main.pictureBox11;
+            this.pictureBox11.Location = new System.Drawing.Point(193, 384);
             this.pictureBox11.Name = "pictureBox11";
-            this.pictureBox11.Size = new Size(180, 180);
+            this.pictureBox11.Size = new System.Drawing.Size(180, 180);
             this.pictureBox11.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox11.TabIndex = 10;
             this.pictureBox11.TabStop = false;
             this.pictureBox11.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox11.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox11.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox12
+            // 
             this.pictureBox12.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox12.ContextMenuStrip = this.contextMenu1;
             this.pictureBox12.Cursor = Cursors.Hand;
-            this.pictureBox12.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox12;
-            this.pictureBox12.Location = new Point(379, 384);
+            this.pictureBox12.InitialImage = global::NejeEngraverApp.Properties.Form_Main.pictureBox12;
+            this.pictureBox12.Location = new System.Drawing.Point(379, 384);
             this.pictureBox12.Name = "pictureBox12";
-            this.pictureBox12.Size = new Size(180, 180);
+            this.pictureBox12.Size = new System.Drawing.Size(180, 180);
             this.pictureBox12.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox12.TabIndex = 11;
             this.pictureBox12.TabStop = false;
             this.pictureBox12.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox12.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox12.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox13
+            // 
             this.pictureBox13.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox13.ContextMenuStrip = this.contextMenu1;
             this.pictureBox13.Cursor = Cursors.Hand;
-            this.pictureBox13.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox13;
-            this.pictureBox13.Location = new Point(565, 384);
+            this.pictureBox13.InitialImage = global::NejeEngraverApp.Properties.Form_Main.pictureBox13;
+            this.pictureBox13.Location = new System.Drawing.Point(565, 384);
             this.pictureBox13.Name = "pictureBox13";
-            this.pictureBox13.Size = new Size(180, 180);
+            this.pictureBox13.Size = new System.Drawing.Size(180, 180);
             this.pictureBox13.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox13.TabIndex = 12;
             this.pictureBox13.TabStop = false;
             this.pictureBox13.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox13.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox13.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // tabPage3
+            // 
             this.tabPage3.Controls.Add(this.label_collection_pages);
             this.tabPage3.Controls.Add(this.button_collection_next);
             this.tabPage3.Controls.Add(this.button_collection_pre);
@@ -3275,191 +3360,237 @@ namespace NejeEngraverApp
             this.tabPage3.Controls.Add(this.pictureBox23);
             this.tabPage3.Controls.Add(this.pictureBox24);
             this.tabPage3.Controls.Add(this.pictureBox25);
-            this.tabPage3.Location = new Point(4, 24);
+            this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new Size(845, 579);
+            this.tabPage3.Size = new System.Drawing.Size(845, 581);
             this.tabPage3.TabIndex = 3;
             this.tabPage3.Text = "收藏";
             this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // label_collection_pages
+            // 
             this.label_collection_pages.AutoSize = true;
-            this.label_collection_pages.Location = new Point(780, 282);
+            this.label_collection_pages.Location = new System.Drawing.Point(780, 282);
             this.label_collection_pages.Name = "label_collection_pages";
-            this.label_collection_pages.Size = new Size(24, 15);
+            this.label_collection_pages.Size = new System.Drawing.Size(24, 15);
             this.label_collection_pages.TabIndex = 30;
             this.label_collection_pages.Text = "1/X";
-            this.button_collection_next.BackgroundImage = NejeEngraverApp.Properties.Form_Main.button_collection_next;
+            // 
+            // button_collection_next
+            // 
+            this.button_collection_next.BackgroundImage = global::NejeEngraverApp.Properties.Form_Main.button_collection_next;
             this.button_collection_next.BackgroundImageLayout = ImageLayout.Zoom;
-            this.button_collection_next.Location = new Point(774, 323);
+            this.button_collection_next.Location = new System.Drawing.Point(774, 323);
             this.button_collection_next.Name = "button_collection_next";
-            this.button_collection_next.Size = new Size(41, 119);
+            this.button_collection_next.Size = new System.Drawing.Size(41, 119);
             this.button_collection_next.TabIndex = 29;
             this.button_collection_next.UseVisualStyleBackColor = true;
-            this.button_collection_next.Click += new EventHandler(this.button_collection_next_Click);
-            this.button_collection_pre.BackgroundImage = NejeEngraverApp.Properties.Form_Main.button_collection_pre;
+            this.button_collection_next.Click += new System.EventHandler(this.button_collection_next_Click);
+            // 
+            // button_collection_pre
+            // 
+            this.button_collection_pre.BackgroundImage = global::NejeEngraverApp.Properties.Form_Main.button_collection_pre;
             this.button_collection_pre.BackgroundImageLayout = ImageLayout.Zoom;
-            this.button_collection_pre.Location = new Point(774, 138);
+            this.button_collection_pre.Location = new System.Drawing.Point(774, 138);
             this.button_collection_pre.Name = "button_collection_pre";
-            this.button_collection_pre.Size = new Size(41, 119);
+            this.button_collection_pre.Size = new System.Drawing.Size(41, 119);
             this.button_collection_pre.TabIndex = 28;
             this.button_collection_pre.UseVisualStyleBackColor = true;
-            this.button_collection_pre.Click += new EventHandler(this.button_collection_pre_Click);
+            this.button_collection_pre.Click += new System.EventHandler(this.button_collection_pre_Click);
+            // 
+            // pictureBox14
+            // 
             this.pictureBox14.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox14.ContextMenuStrip = this.contextMenu2;
             this.pictureBox14.Cursor = Cursors.Hand;
-            this.pictureBox14.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox14;
-            this.pictureBox14.Location = new Point(7, 12);
+            this.pictureBox14.Location = new System.Drawing.Point(7, 12);
             this.pictureBox14.Name = "pictureBox14";
-            this.pictureBox14.Size = new Size(180, 180);
+            this.pictureBox14.Size = new System.Drawing.Size(180, 180);
             this.pictureBox14.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox14.TabIndex = 16;
             this.pictureBox14.TabStop = false;
             this.pictureBox14.Tag = "1";
             this.pictureBox14.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox14.Click += new EventHandler(this.pictureBox_load_Click);
-            this.contextMenu2.Items.AddRange(new ToolStripItem[]
-            {
-                this.menu_delete
-            });
+            this.pictureBox14.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // contextMenu2
+            // 
+            this.contextMenu2.Items.AddRange(new ToolStripItem[] {
+            this.menu_delete});
             this.contextMenu2.Name = "contextMenu2";
-            this.contextMenu2.Size = new Size(114, 26);
+            this.contextMenu2.Size = new System.Drawing.Size(108, 26);
             this.contextMenu2.ItemClicked += new ToolStripItemClickedEventHandler(this.contextMenu2_ItemClicked);
+            // 
+            // menu_delete
+            // 
             this.menu_delete.Name = "menu_delete";
-            this.menu_delete.Size = new Size(113, 22);
+            this.menu_delete.Size = new System.Drawing.Size(107, 22);
             this.menu_delete.Text = "Delete";
+            // 
+            // pictureBox15
+            // 
             this.pictureBox15.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox15.ContextMenuStrip = this.contextMenu2;
             this.pictureBox15.Cursor = Cursors.Hand;
-            this.pictureBox15.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox15;
-            this.pictureBox15.Location = new Point(193, 12);
+            this.pictureBox15.Location = new System.Drawing.Point(193, 12);
             this.pictureBox15.Name = "pictureBox15";
-            this.pictureBox15.Size = new Size(180, 180);
+            this.pictureBox15.Size = new System.Drawing.Size(180, 180);
             this.pictureBox15.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox15.TabIndex = 17;
             this.pictureBox15.TabStop = false;
             this.pictureBox15.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox15.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox15.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox16
+            // 
             this.pictureBox16.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox16.ContextMenuStrip = this.contextMenu2;
             this.pictureBox16.Cursor = Cursors.Hand;
-            this.pictureBox16.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox16;
-            this.pictureBox16.Location = new Point(379, 12);
+            this.pictureBox16.InitialImage = global::NejeEngraverApp.Properties.Form_Main.pictureBox16;
+            this.pictureBox16.Location = new System.Drawing.Point(379, 12);
             this.pictureBox16.Name = "pictureBox16";
-            this.pictureBox16.Size = new Size(180, 180);
+            this.pictureBox16.Size = new System.Drawing.Size(180, 180);
             this.pictureBox16.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox16.TabIndex = 18;
             this.pictureBox16.TabStop = false;
             this.pictureBox16.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox16.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox16.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox17
+            // 
             this.pictureBox17.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox17.ContextMenuStrip = this.contextMenu2;
             this.pictureBox17.Cursor = Cursors.Hand;
-            this.pictureBox17.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox17;
-            this.pictureBox17.Location = new Point(565, 12);
+            this.pictureBox17.InitialImage = global::NejeEngraverApp.Properties.Form_Main.pictureBox17;
+            this.pictureBox17.Location = new System.Drawing.Point(565, 12);
             this.pictureBox17.Name = "pictureBox17";
-            this.pictureBox17.Size = new Size(180, 180);
+            this.pictureBox17.Size = new System.Drawing.Size(180, 180);
             this.pictureBox17.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox17.TabIndex = 19;
             this.pictureBox17.TabStop = false;
             this.pictureBox17.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox17.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox17.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox18
+            // 
             this.pictureBox18.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox18.ContextMenuStrip = this.contextMenu2;
             this.pictureBox18.Cursor = Cursors.Hand;
-            this.pictureBox18.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox18;
-            this.pictureBox18.Location = new Point(7, 198);
+            this.pictureBox18.InitialImage = global::NejeEngraverApp.Properties.Form_Main.pictureBox18;
+            this.pictureBox18.Location = new System.Drawing.Point(7, 198);
             this.pictureBox18.Name = "pictureBox18";
-            this.pictureBox18.Size = new Size(180, 180);
+            this.pictureBox18.Size = new System.Drawing.Size(180, 180);
             this.pictureBox18.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox18.TabIndex = 20;
             this.pictureBox18.TabStop = false;
             this.pictureBox18.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox18.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox18.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox19
+            // 
             this.pictureBox19.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox19.ContextMenuStrip = this.contextMenu2;
             this.pictureBox19.Cursor = Cursors.Hand;
-            this.pictureBox19.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox19;
-            this.pictureBox19.Location = new Point(193, 198);
+            this.pictureBox19.Location = new System.Drawing.Point(193, 198);
             this.pictureBox19.Name = "pictureBox19";
-            this.pictureBox19.Size = new Size(180, 180);
+            this.pictureBox19.Size = new System.Drawing.Size(180, 180);
             this.pictureBox19.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox19.TabIndex = 21;
             this.pictureBox19.TabStop = false;
             this.pictureBox19.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox19.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox19.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox20
+            // 
             this.pictureBox20.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox20.ContextMenuStrip = this.contextMenu2;
             this.pictureBox20.Cursor = Cursors.Hand;
-            this.pictureBox20.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox20;
-            this.pictureBox20.Location = new Point(379, 198);
+            this.pictureBox20.Location = new System.Drawing.Point(379, 198);
             this.pictureBox20.Name = "pictureBox20";
-            this.pictureBox20.Size = new Size(180, 180);
+            this.pictureBox20.Size = new System.Drawing.Size(180, 180);
             this.pictureBox20.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox20.TabIndex = 22;
             this.pictureBox20.TabStop = false;
             this.pictureBox20.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox20.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox20.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox21
+            // 
             this.pictureBox21.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox21.ContextMenuStrip = this.contextMenu2;
             this.pictureBox21.Cursor = Cursors.Hand;
-            this.pictureBox21.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox21;
-            this.pictureBox21.Location = new Point(565, 198);
+            this.pictureBox21.Location = new System.Drawing.Point(565, 198);
             this.pictureBox21.Name = "pictureBox21";
-            this.pictureBox21.Size = new Size(180, 180);
+            this.pictureBox21.Size = new System.Drawing.Size(180, 180);
             this.pictureBox21.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox21.TabIndex = 23;
             this.pictureBox21.TabStop = false;
             this.pictureBox21.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox21.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox21.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox22
+            // 
             this.pictureBox22.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox22.ContextMenuStrip = this.contextMenu2;
             this.pictureBox22.Cursor = Cursors.Hand;
-            this.pictureBox22.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox22;
-            this.pictureBox22.Location = new Point(7, 384);
+            this.pictureBox22.Location = new System.Drawing.Point(7, 384);
             this.pictureBox22.Name = "pictureBox22";
-            this.pictureBox22.Size = new Size(180, 180);
+            this.pictureBox22.Size = new System.Drawing.Size(180, 180);
             this.pictureBox22.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox22.TabIndex = 24;
             this.pictureBox22.TabStop = false;
             this.pictureBox22.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox22.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox22.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox23
+            // 
             this.pictureBox23.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox23.ContextMenuStrip = this.contextMenu2;
             this.pictureBox23.Cursor = Cursors.Hand;
-            this.pictureBox23.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox23;
-            this.pictureBox23.Location = new Point(193, 384);
+            this.pictureBox23.InitialImage = global::NejeEngraverApp.Properties.Form_Main.pictureBox23;
+            this.pictureBox23.Location = new System.Drawing.Point(193, 384);
             this.pictureBox23.Name = "pictureBox23";
-            this.pictureBox23.Size = new Size(180, 180);
+            this.pictureBox23.Size = new System.Drawing.Size(180, 180);
             this.pictureBox23.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox23.TabIndex = 25;
             this.pictureBox23.TabStop = false;
             this.pictureBox23.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox23.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox23.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox24
+            // 
             this.pictureBox24.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox24.ContextMenuStrip = this.contextMenu2;
             this.pictureBox24.Cursor = Cursors.Hand;
-            this.pictureBox24.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox24;
-            this.pictureBox24.Location = new Point(379, 384);
+            this.pictureBox24.InitialImage = global::NejeEngraverApp.Properties.Form_Main.pictureBox24;
+            this.pictureBox24.Location = new System.Drawing.Point(379, 384);
             this.pictureBox24.Name = "pictureBox24";
-            this.pictureBox24.Size = new Size(180, 180);
+            this.pictureBox24.Size = new System.Drawing.Size(180, 180);
             this.pictureBox24.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox24.TabIndex = 26;
             this.pictureBox24.TabStop = false;
             this.pictureBox24.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox24.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox24.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // pictureBox25
+            // 
             this.pictureBox25.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox25.ContextMenuStrip = this.contextMenu2;
             this.pictureBox25.Cursor = Cursors.Hand;
-            this.pictureBox25.InitialImage = NejeEngraverApp.Properties.Form_Main.pictureBox25;
-            this.pictureBox25.Location = new Point(565, 384);
+            this.pictureBox25.InitialImage = global::NejeEngraverApp.Properties.Form_Main.pictureBox25;
+            this.pictureBox25.Location = new System.Drawing.Point(565, 384);
             this.pictureBox25.Name = "pictureBox25";
-            this.pictureBox25.Size = new Size(180, 180);
+            this.pictureBox25.Size = new System.Drawing.Size(180, 180);
             this.pictureBox25.SizeMode = PictureBoxSizeMode.Zoom;
             this.pictureBox25.TabIndex = 27;
             this.pictureBox25.TabStop = false;
             this.pictureBox25.LoadCompleted += new AsyncCompletedEventHandler(this.pictureBox2_LoadCompleted);
-            this.pictureBox25.Click += new EventHandler(this.pictureBox_load_Click);
+            this.pictureBox25.Click += new System.EventHandler(this.pictureBox_load_Click);
+            // 
+            // tabPage2
+            // 
             this.tabPage2.AllowDrop = true;
-            this.tabPage2.BackColor = SystemColors.Control;
+            this.tabPage2.BackColor = System.Drawing.SystemColors.Control;
             this.tabPage2.Controls.Add(this.panel_Laser_PWM);
             this.tabPage2.Controls.Add(this.button_Send_Pic);
             this.tabPage2.Controls.Add(this.panel_control);
@@ -3473,42 +3604,57 @@ namespace NejeEngraverApp
             this.tabPage2.Controls.Add(this.pictureBox1);
             this.tabPage2.Controls.Add(this.trackBar_carveTime);
             this.tabPage2.Controls.Add(this.label_trackbar);
-            this.tabPage2.Location = new Point(4, 22);
+            this.tabPage2.Location = new System.Drawing.Point(4, 24);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new Padding(3);
-            this.tabPage2.Size = new Size(845, 581);
+            this.tabPage2.Size = new System.Drawing.Size(845, 579);
             this.tabPage2.TabIndex = 2;
             this.tabPage2.Text = "控制";
-            this.tabPage2.Click += new EventHandler(this.tabPage3_Click);
+            this.tabPage2.Click += new System.EventHandler(this.tabPage3_Click);
             this.tabPage2.DragDrop += new DragEventHandler(this.tabPage3_DragDrop);
             this.tabPage2.DragEnter += new DragEventHandler(this.tabPage3_DragEnter);
+            // 
+            // panel_Laser_PWM
+            // 
             this.panel_Laser_PWM.Controls.Add(this.trackBar_PWM);
             this.panel_Laser_PWM.Controls.Add(this.label_PWM);
-            this.panel_Laser_PWM.Location = new Point(910, 470);
+            this.panel_Laser_PWM.Location = new System.Drawing.Point(910, 470);
             this.panel_Laser_PWM.Name = "panel_Laser_PWM";
-            this.panel_Laser_PWM.Size = new Size(304, 50);
+            this.panel_Laser_PWM.Size = new System.Drawing.Size(304, 50);
             this.panel_Laser_PWM.TabIndex = 39;
+            // 
+            // trackBar_PWM
+            // 
             this.trackBar_PWM.LargeChange = 1;
-            this.trackBar_PWM.Location = new Point(3, 3);
+            this.trackBar_PWM.Location = new System.Drawing.Point(3, 3);
             this.trackBar_PWM.Minimum = 1;
             this.trackBar_PWM.Name = "trackBar_PWM";
-            this.trackBar_PWM.Size = new Size(184, 45);
+            this.trackBar_PWM.Size = new System.Drawing.Size(184, 45);
             this.trackBar_PWM.TabIndex = 37;
             this.trackBar_PWM.Value = 10;
-            this.trackBar_PWM.Scroll += new EventHandler(this.trackBar_PWM_Scroll);
+            this.trackBar_PWM.Scroll += new System.EventHandler(this.trackBar_PWM_Scroll);
+            // 
+            // label_PWM
+            // 
             this.label_PWM.AutoSize = true;
-            this.label_PWM.Location = new Point(187, 7);
+            this.label_PWM.Location = new System.Drawing.Point(187, 7);
             this.label_PWM.Name = "label_PWM";
-            this.label_PWM.Size = new Size(67, 15);
+            this.label_PWM.Size = new System.Drawing.Size(61, 15);
             this.label_PWM.TabIndex = 25;
             this.label_PWM.Text = "激光功率：";
-            this.button_Send_Pic.Location = new Point(596, 241);
+            // 
+            // button_Send_Pic
+            // 
+            this.button_Send_Pic.Location = new System.Drawing.Point(596, 241);
             this.button_Send_Pic.Name = "button_Send_Pic";
-            this.button_Send_Pic.Size = new Size(192, 40);
+            this.button_Send_Pic.Size = new System.Drawing.Size(192, 40);
             this.button_Send_Pic.TabIndex = 30;
             this.button_Send_Pic.Text = "发送图片";
             this.button_Send_Pic.UseVisualStyleBackColor = true;
-            this.button_Send_Pic.Click += new EventHandler(this.button_Send_Pic_Click);
+            this.button_Send_Pic.Click += new System.EventHandler(this.button_Send_Pic_Click);
+            // 
+            // panel_control
+            // 
             this.panel_control.Controls.Add(this.button_stop);
             this.panel_control.Controls.Add(this.label_times);
             this.panel_control.Controls.Add(this.numericUpDown_times);
@@ -3516,286 +3662,407 @@ namespace NejeEngraverApp
             this.panel_control.Controls.Add(this.button_preview);
             this.panel_control.Controls.Add(this.button_pause);
             this.panel_control.Controls.Add(this.button_start);
-            this.panel_control.Location = new Point(591, 382);
+            this.panel_control.Location = new System.Drawing.Point(591, 382);
             this.panel_control.Name = "panel_control";
-            this.panel_control.Size = new Size(200, 138);
+            this.panel_control.Size = new System.Drawing.Size(200, 138);
             this.panel_control.TabIndex = 36;
-            this.button_stop.Location = new Point(107, 93);
+            // 
+            // button_stop
+            // 
+            this.button_stop.Location = new System.Drawing.Point(107, 93);
             this.button_stop.Name = "button_stop";
-            this.button_stop.Size = new Size(90, 40);
+            this.button_stop.Size = new System.Drawing.Size(90, 40);
             this.button_stop.TabIndex = 41;
             this.button_stop.Text = "停止";
             this.button_stop.UseVisualStyleBackColor = true;
-            this.button_stop.Click += new EventHandler(this.button_stop_Click);
+            this.button_stop.Click += new System.EventHandler(this.button_stop_Click);
+            // 
+            // label_times
+            // 
             this.label_times.AutoSize = true;
-            this.label_times.Location = new Point(155, 62);
+            this.label_times.Location = new System.Drawing.Point(155, 62);
             this.label_times.Name = "label_times";
-            this.label_times.Size = new Size(42, 15);
+            this.label_times.Size = new System.Drawing.Size(42, 15);
             this.label_times.TabIndex = 40;
             this.label_times.Text = "Times";
-            this.numericUpDown_times.Location = new Point(111, 60);
-            this.numericUpDown_times.Minimum = 1;
+            // 
+            // numericUpDown_times
+            // 
+            this.numericUpDown_times.Location = new System.Drawing.Point(111, 60);
+            this.numericUpDown_times.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             this.numericUpDown_times.Name = "numericUpDown_times";
-            this.numericUpDown_times.Size = new Size(38, 21);
+            this.numericUpDown_times.Size = new System.Drawing.Size(38, 21);
             this.numericUpDown_times.TabIndex = 39;
-            this.numericUpDown_times.Value = 1;
-            this.button_anypoint_location.BackgroundImage = Resources.anypoint;
+            this.numericUpDown_times.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // button_anypoint_location
+            // 
+            this.button_anypoint_location.BackgroundImage = global::NejeEngraverApp.Properties.Resources.anypoint;
             this.button_anypoint_location.BackgroundImageLayout = ImageLayout.Zoom;
-            this.button_anypoint_location.Location = new Point(107, 5);
+            this.button_anypoint_location.Location = new System.Drawing.Point(107, 5);
             this.button_anypoint_location.Name = "button_anypoint_location";
-            this.button_anypoint_location.Size = new Size(90, 40);
+            this.button_anypoint_location.Size = new System.Drawing.Size(90, 40);
             this.button_anypoint_location.TabIndex = 38;
             this.button_anypoint_location.UseVisualStyleBackColor = true;
-            this.button_anypoint_location.Click += new EventHandler(this.button_anypoint_location_Click);
-            this.button_preview.BackgroundImage = NejeEngraverApp.Properties.Form_Main.button_preview;
+            this.button_anypoint_location.Click += new System.EventHandler(this.button_anypoint_location_Click);
+            // 
+            // button_preview
+            // 
+            this.button_preview.BackgroundImage = global::NejeEngraverApp.Properties.Form_Main.button_preview;
             this.button_preview.BackgroundImageLayout = ImageLayout.Zoom;
-            this.button_preview.Location = new Point(5, 5);
+            this.button_preview.Location = new System.Drawing.Point(5, 5);
             this.button_preview.Name = "button_preview";
-            this.button_preview.Size = new Size(90, 40);
+            this.button_preview.Size = new System.Drawing.Size(90, 40);
             this.button_preview.TabIndex = 37;
             this.button_preview.UseVisualStyleBackColor = true;
-            this.button_preview.Click += new EventHandler(this.button_preview_Click);
-            this.button_pause.Location = new Point(5, 93);
+            this.button_preview.Click += new System.EventHandler(this.button_preview_Click);
+            // 
+            // button_pause
+            // 
+            this.button_pause.Location = new System.Drawing.Point(5, 93);
             this.button_pause.Name = "button_pause";
-            this.button_pause.Size = new Size(90, 40);
+            this.button_pause.Size = new System.Drawing.Size(90, 40);
             this.button_pause.TabIndex = 36;
             this.button_pause.Text = "暂停";
             this.button_pause.UseVisualStyleBackColor = true;
-            this.button_pause.Click += new EventHandler(this.button_pause_Click);
-            this.button_start.Location = new Point(5, 49);
+            this.button_pause.Click += new System.EventHandler(this.button_pause_Click);
+            // 
+            // button_start
+            // 
+            this.button_start.Location = new System.Drawing.Point(5, 49);
             this.button_start.Name = "button_start";
-            this.button_start.Size = new Size(90, 40);
+            this.button_start.Size = new System.Drawing.Size(90, 40);
             this.button_start.TabIndex = 35;
             this.button_start.Text = "开始";
             this.button_start.UseVisualStyleBackColor = true;
-            this.button_start.Click += new EventHandler(this.button_start_Click);
+            this.button_start.Click += new System.EventHandler(this.button_start_Click);
+            // 
+            // panel_direction
+            // 
             this.panel_direction.Controls.Add(this.button_left);
             this.panel_direction.Controls.Add(this.button_down);
             this.panel_direction.Controls.Add(this.button_right);
             this.panel_direction.Controls.Add(this.button_up);
-            this.panel_direction.Location = new Point(591, 283);
+            this.panel_direction.Location = new System.Drawing.Point(591, 283);
             this.panel_direction.Name = "panel_direction";
-            this.panel_direction.Size = new Size(200, 93);
+            this.panel_direction.Size = new System.Drawing.Size(200, 93);
             this.panel_direction.TabIndex = 35;
-            this.button_left.BackgroundImage = Resources.left;
+            // 
+            // button_left
+            // 
+            this.button_left.BackgroundImage = global::NejeEngraverApp.Properties.Resources.left;
             this.button_left.BackgroundImageLayout = ImageLayout.Zoom;
-            this.button_left.Location = new Point(5, 49);
+            this.button_left.Location = new System.Drawing.Point(5, 49);
             this.button_left.Name = "button_left";
-            this.button_left.Size = new Size(60, 40);
+            this.button_left.Size = new System.Drawing.Size(60, 40);
             this.button_left.TabIndex = 27;
             this.button_left.UseVisualStyleBackColor = true;
-            this.button_left.Click += new EventHandler(this.button_up_Click);
-            this.button_down.BackgroundImage = Resources.down;
+            this.button_left.Click += new System.EventHandler(this.button_up_Click);
+            // 
+            // button_down
+            // 
+            this.button_down.BackgroundImage = global::NejeEngraverApp.Properties.Resources.down;
             this.button_down.BackgroundImageLayout = ImageLayout.Zoom;
-            this.button_down.Location = new Point(71, 49);
+            this.button_down.Location = new System.Drawing.Point(71, 49);
             this.button_down.Name = "button_down";
-            this.button_down.Size = new Size(60, 40);
+            this.button_down.Size = new System.Drawing.Size(60, 40);
             this.button_down.TabIndex = 28;
             this.button_down.UseVisualStyleBackColor = true;
-            this.button_down.Click += new EventHandler(this.button_up_Click);
-            this.button_right.BackgroundImage = Resources.right;
+            this.button_down.Click += new System.EventHandler(this.button_up_Click);
+            // 
+            // button_right
+            // 
+            this.button_right.BackgroundImage = global::NejeEngraverApp.Properties.Resources.right;
             this.button_right.BackgroundImageLayout = ImageLayout.Zoom;
-            this.button_right.Location = new Point(137, 49);
+            this.button_right.Location = new System.Drawing.Point(137, 49);
             this.button_right.Name = "button_right";
-            this.button_right.Size = new Size(60, 40);
+            this.button_right.Size = new System.Drawing.Size(60, 40);
             this.button_right.TabIndex = 29;
             this.button_right.UseVisualStyleBackColor = true;
-            this.button_right.Click += new EventHandler(this.button_up_Click);
-            this.button_up.BackgroundImage = Resources.up;
+            this.button_right.Click += new System.EventHandler(this.button_up_Click);
+            // 
+            // button_up
+            // 
+            this.button_up.BackgroundImage = global::NejeEngraverApp.Properties.Resources.up;
             this.button_up.BackgroundImageLayout = ImageLayout.Zoom;
-            this.button_up.Location = new Point(71, 3);
+            this.button_up.Location = new System.Drawing.Point(71, 3);
             this.button_up.Name = "button_up";
-            this.button_up.Size = new Size(60, 40);
+            this.button_up.Size = new System.Drawing.Size(60, 40);
             this.button_up.TabIndex = 26;
             this.button_up.UseVisualStyleBackColor = true;
-            this.button_up.Click += new EventHandler(this.button_up_Click);
-            this.button_reload.Location = new Point(698, 47);
+            this.button_up.Click += new System.EventHandler(this.button_up_Click);
+            // 
+            // button_reload
+            // 
+            this.button_reload.Location = new System.Drawing.Point(698, 47);
             this.button_reload.Name = "button_reload";
-            this.button_reload.Size = new Size(90, 27);
+            this.button_reload.Size = new System.Drawing.Size(90, 27);
             this.button_reload.TabIndex = 31;
             this.button_reload.Text = "重载";
             this.button_reload.UseVisualStyleBackColor = true;
-            this.button_reload.Click += new EventHandler(this.button_reload_Click);
-            this.button_clear.Location = new Point(596, 47);
+            this.button_reload.Click += new System.EventHandler(this.button_reload_Click);
+            // 
+            // button_clear
+            // 
+            this.button_clear.Location = new System.Drawing.Point(596, 47);
             this.button_clear.Name = "button_clear";
-            this.button_clear.Size = new Size(90, 27);
+            this.button_clear.Size = new System.Drawing.Size(90, 27);
             this.button_clear.TabIndex = 30;
             this.button_clear.Text = "清除";
             this.button_clear.UseVisualStyleBackColor = true;
-            this.button_clear.Click += new EventHandler(this.button_clear_Click);
+            this.button_clear.Click += new System.EventHandler(this.button_clear_Click);
+            // 
+            // groupBox_InsertText
+            // 
             this.groupBox_InsertText.Controls.Add(this.checkBox_Insert);
             this.groupBox_InsertText.Controls.Add(this.button_Font);
             this.groupBox_InsertText.Controls.Add(this.textBox_Edit);
-            this.groupBox_InsertText.Location = new Point(596, 86);
+            this.groupBox_InsertText.Location = new System.Drawing.Point(596, 86);
             this.groupBox_InsertText.Margin = new Padding(2);
             this.groupBox_InsertText.Name = "groupBox_InsertText";
             this.groupBox_InsertText.Padding = new Padding(2);
-            this.groupBox_InsertText.Size = new Size(192, 150);
+            this.groupBox_InsertText.Size = new System.Drawing.Size(192, 150);
             this.groupBox_InsertText.TabIndex = 25;
             this.groupBox_InsertText.TabStop = false;
             this.groupBox_InsertText.Text = "插入文字";
-            this.checkBox_Insert.Font = new Font("微软雅黑", 9f);
-            this.checkBox_Insert.Location = new Point(96, 116);
+            // 
+            // checkBox_Insert
+            // 
+            this.checkBox_Insert.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
+            this.checkBox_Insert.Location = new System.Drawing.Point(96, 116);
             this.checkBox_Insert.Name = "checkBox_Insert";
-            this.checkBox_Insert.Size = new Size(92, 21);
+            this.checkBox_Insert.Size = new System.Drawing.Size(92, 21);
             this.checkBox_Insert.TabIndex = 3;
             this.checkBox_Insert.Text = "插入文字";
             this.checkBox_Insert.UseVisualStyleBackColor = true;
-            this.checkBox_Insert.CheckedChanged += new EventHandler(this.checkBox_Insert_CheckedChanged);
-            this.button_Font.Location = new Point(10, 111);
+            this.checkBox_Insert.CheckedChanged += new System.EventHandler(this.checkBox_Insert_CheckedChanged);
+            // 
+            // button_Font
+            // 
+            this.button_Font.Location = new System.Drawing.Point(10, 111);
             this.button_Font.Margin = new Padding(2);
             this.button_Font.Name = "button_Font";
-            this.button_Font.Size = new Size(65, 29);
+            this.button_Font.Size = new System.Drawing.Size(65, 29);
             this.button_Font.TabIndex = 2;
             this.button_Font.Text = "字体";
             this.button_Font.UseVisualStyleBackColor = true;
-            this.button_Font.Click += new EventHandler(this.button_Font_Click);
+            this.button_Font.Click += new System.EventHandler(this.button_Font_Click);
+            // 
+            // textBox_Edit
+            // 
             this.textBox_Edit.AcceptsReturn = true;
             this.textBox_Edit.AcceptsTab = true;
-            this.textBox_Edit.BackColor = SystemColors.Window;
-            this.textBox_Edit.Location = new Point(4, 18);
+            this.textBox_Edit.BackColor = System.Drawing.SystemColors.Window;
+            this.textBox_Edit.Location = new System.Drawing.Point(4, 18);
             this.textBox_Edit.Margin = new Padding(2);
             this.textBox_Edit.Multiline = true;
             this.textBox_Edit.Name = "textBox_Edit";
             this.textBox_Edit.ScrollBars = ScrollBars.Vertical;
-            this.textBox_Edit.Size = new Size(184, 80);
+            this.textBox_Edit.Size = new System.Drawing.Size(184, 80);
             this.textBox_Edit.TabIndex = 0;
             this.textBox_Edit.Text = "请输入文字：";
-            this.textBox_Edit.Click += new EventHandler(this.textBox_Edit_Click);
-            this.textBox_Edit.DoubleClick += new EventHandler(this.textBox_Edit_DoubleClick);
-            this.panel_size.BackColor = SystemColors.Window;
+            this.textBox_Edit.Click += new System.EventHandler(this.textBox_Edit_Click);
+            this.textBox_Edit.DoubleClick += new System.EventHandler(this.textBox_Edit_DoubleClick);
+            // 
+            // panel_size
+            // 
+            this.panel_size.BackColor = System.Drawing.SystemColors.Window;
             this.panel_size.Controls.Add(this.label_width);
             this.panel_size.Controls.Add(this.textBox_size);
             this.panel_size.Controls.Add(this.button_size);
             this.panel_size.Controls.Add(this.label_size);
-            this.panel_size.Location = new Point(189, 482);
+            this.panel_size.Location = new System.Drawing.Point(189, 482);
             this.panel_size.Name = "panel_size";
-            this.panel_size.Size = new Size(233, 29);
+            this.panel_size.Size = new System.Drawing.Size(233, 29);
             this.panel_size.TabIndex = 16;
-            this.label_width.Location = new Point(3, 5);
+            // 
+            // label_width
+            // 
+            this.label_width.Location = new System.Drawing.Point(3, 5);
             this.label_width.Name = "label_width";
-            this.label_width.Size = new Size(53, 15);
+            this.label_width.Size = new System.Drawing.Size(53, 15);
             this.label_width.TabIndex = 16;
             this.label_width.Text = "Width:";
-            this.label_width.TextAlign = ContentAlignment.MiddleRight;
-            this.textBox_size.Location = new Point(57, 3);
+            this.label_width.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // textBox_size
+            // 
+            this.textBox_size.Location = new System.Drawing.Point(57, 3);
             this.textBox_size.Name = "textBox_size";
-            this.textBox_size.Size = new Size(58, 21);
+            this.textBox_size.Size = new System.Drawing.Size(58, 21);
             this.textBox_size.TabIndex = 15;
             this.textBox_size.Text = "0";
             this.textBox_size.TextAlign = HorizontalAlignment.Center;
-            this.button_size.Location = new Point(186, 3);
+            // 
+            // button_size
+            // 
+            this.button_size.Location = new System.Drawing.Point(186, 3);
             this.button_size.Name = "button_size";
-            this.button_size.Size = new Size(44, 23);
+            this.button_size.Size = new System.Drawing.Size(44, 23);
             this.button_size.TabIndex = 13;
             this.button_size.Text = "OK";
             this.button_size.UseVisualStyleBackColor = true;
-            this.button_size.Click += new EventHandler(this.button_size_Click);
+            this.button_size.Click += new System.EventHandler(this.button_size_Click);
+            // 
+            // label_size
+            // 
             this.label_size.AutoSize = true;
-            this.label_size.Location = new Point(121, 5);
+            this.label_size.Location = new System.Drawing.Point(121, 5);
             this.label_size.Name = "label_size";
-            this.label_size.Size = new Size(64, 15);
+            this.label_size.Size = new System.Drawing.Size(64, 15);
             this.label_size.TabIndex = 14;
             this.label_size.Text = "mm 100%";
-            this.label_size.TextAlign = ContentAlignment.MiddleLeft;
+            this.label_size.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // radioButton_Black
+            // 
             this.radioButton_Black.AutoSize = true;
             this.radioButton_Black.Checked = true;
-            this.radioButton_Black.Location = new Point(606, 18);
+            this.radioButton_Black.Location = new System.Drawing.Point(606, 18);
             this.radioButton_Black.Name = "radioButton_Black";
-            this.radioButton_Black.Size = new Size(73, 19);
+            this.radioButton_Black.Size = new System.Drawing.Size(73, 19);
             this.radioButton_Black.TabIndex = 12;
             this.radioButton_Black.TabStop = true;
             this.radioButton_Black.Text = "黑白雕刻";
             this.radioButton_Black.UseVisualStyleBackColor = true;
-            this.radioButton_Black.CheckedChanged += new EventHandler(this.radioButton_Black_CheckedChanged);
+            this.radioButton_Black.CheckedChanged += new System.EventHandler(this.radioButton_Black_CheckedChanged);
+            // 
+            // radioButton_Shake
+            // 
             this.radioButton_Shake.AutoSize = true;
-            this.radioButton_Shake.Location = new Point(703, 18);
+            this.radioButton_Shake.Location = new System.Drawing.Point(703, 18);
             this.radioButton_Shake.Name = "radioButton_Shake";
-            this.radioButton_Shake.Size = new Size(73, 19);
+            this.radioButton_Shake.Size = new System.Drawing.Size(73, 19);
             this.radioButton_Shake.TabIndex = 11;
             this.radioButton_Shake.Text = "抖动雕刻";
             this.radioButton_Shake.UseVisualStyleBackColor = true;
-            this.radioButton_Shake.CheckedChanged += new EventHandler(this.radioButton_Black_CheckedChanged);
-            this.pictureBox1.BackColor = Color.White;
+            this.radioButton_Shake.CheckedChanged += new System.EventHandler(this.radioButton_Black_CheckedChanged);
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.BackColor = System.Drawing.Color.White;
             this.pictureBox1.BackgroundImageLayout = ImageLayout.None;
             this.pictureBox1.BorderStyle = BorderStyle.FixedSingle;
             this.pictureBox1.ContextMenuStrip = this.contextMenu1;
             this.pictureBox1.Cursor = Cursors.Default;
-            this.pictureBox1.Location = new Point(26, 15);
+            this.pictureBox1.Location = new System.Drawing.Point(26, 15);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new Size(502, 502);
+            this.pictureBox1.Size = new System.Drawing.Size(502, 502);
             this.pictureBox1.TabIndex = 6;
             this.pictureBox1.TabStop = false;
+            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
             this.pictureBox1.MouseDown += new MouseEventHandler(this.pictureBox1_MouseDown);
             this.pictureBox1.MouseMove += new MouseEventHandler(this.pictureBox1_MouseMove);
             this.pictureBox1.MouseUp += new MouseEventHandler(this.pictureBox1_MouseUp);
+            // 
+            // timer_connect
+            // 
             this.timer_connect.Interval = 1000;
-            this.timer_connect.Tick += new EventHandler(this.timer_connect_Tick);
+            this.timer_connect.Tick += new System.EventHandler(this.timer_connect_Tick);
+            // 
+            // timer_isconnection_ok_check
+            // 
             this.timer_isconnection_ok_check.Enabled = true;
             this.timer_isconnection_ok_check.Interval = 1000;
-            this.timer_isconnection_ok_check.Tick += new EventHandler(this.timer_isconnection_ok_check_Tick);
+            this.timer_isconnection_ok_check.Tick += new System.EventHandler(this.timer_isconnection_ok_check_Tick);
+            // 
+            // timer_picturebox_refresh
+            // 
             this.timer_picturebox_refresh.Enabled = true;
             this.timer_picturebox_refresh.Interval = 500;
-            this.timer_picturebox_refresh.Tick += new EventHandler(this.timer_picturebox_refresh_Tick);
+            this.timer_picturebox_refresh.Tick += new System.EventHandler(this.timer_picturebox_refresh_Tick);
+            // 
+            // label_current
+            // 
             this.label_current.AutoSize = true;
-            this.label_current.Location = new Point(18, 128);
+            this.label_current.Location = new System.Drawing.Point(18, 128);
             this.label_current.Name = "label_current";
-            this.label_current.Size = new Size(91, 15);
+            this.label_current.Size = new System.Drawing.Size(85, 15);
             this.label_current.TabIndex = 29;
             this.label_current.Text = "电池充电电流：";
+            // 
+            // label_temperature
+            // 
             this.label_temperature.AutoSize = true;
-            this.label_temperature.Location = new Point(18, 77);
+            this.label_temperature.Location = new System.Drawing.Point(18, 77);
             this.label_temperature.Name = "label_temperature";
-            this.label_temperature.Size = new Size(67, 15);
+            this.label_temperature.Size = new System.Drawing.Size(61, 15);
             this.label_temperature.TabIndex = 28;
             this.label_temperature.Text = "激光温度：";
+            // 
+            // label_power
+            // 
             this.label_power.AutoSize = true;
-            this.label_power.Location = new Point(18, 103);
+            this.label_power.Location = new System.Drawing.Point(18, 103);
             this.label_power.Name = "label_power";
-            this.label_power.Size = new Size(67, 15);
+            this.label_power.Size = new System.Drawing.Size(61, 15);
             this.label_power.TabIndex = 27;
             this.label_power.Text = "剩余电量：";
+            // 
+            // label_software_version
+            // 
             this.label_software_version.AutoSize = true;
-            this.label_software_version.Location = new Point(17, 572);
+            this.label_software_version.Location = new System.Drawing.Point(17, 572);
             this.label_software_version.Name = "label_software_version";
-            this.label_software_version.Size = new Size(102, 15);
+            this.label_software_version.Size = new System.Drawing.Size(102, 15);
             this.label_software_version.TabIndex = 28;
             this.label_software_version.Text = "Software Version:";
+            // 
+            // label_machine_mode
+            // 
             this.label_machine_mode.AutoSize = true;
-            this.label_machine_mode.Location = new Point(18, 27);
+            this.label_machine_mode.Location = new System.Drawing.Point(18, 27);
             this.label_machine_mode.Name = "label_machine_mode";
-            this.label_machine_mode.Size = new Size(67, 15);
+            this.label_machine_mode.Size = new System.Drawing.Size(61, 15);
             this.label_machine_mode.TabIndex = 30;
             this.label_machine_mode.Text = "机器型号：";
+            // 
+            // label_machine_firmversion
+            // 
             this.label_machine_firmversion.AutoSize = true;
-            this.label_machine_firmversion.Location = new Point(18, 53);
+            this.label_machine_firmversion.Location = new System.Drawing.Point(18, 53);
             this.label_machine_firmversion.Name = "label_machine_firmversion";
-            this.label_machine_firmversion.Size = new Size(67, 15);
+            this.label_machine_firmversion.Size = new System.Drawing.Size(61, 15);
             this.label_machine_firmversion.TabIndex = 31;
             this.label_machine_firmversion.Text = "固件版本：";
+            // 
+            // label1
+            // 
             this.label1.AutoSize = true;
-            this.label1.Location = new Point(17, 600);
+            this.label1.Location = new System.Drawing.Point(17, 600);
             this.label1.Name = "label1";
-            this.label1.Size = new Size(66, 15);
+            this.label1.Size = new System.Drawing.Size(66, 15);
             this.label1.TabIndex = 29;
             this.label1.Text = "Language:";
+            // 
+            // comboBox_Language
+            // 
             this.comboBox_Language.DropDownStyle = ComboBoxStyle.DropDownList;
-            this.comboBox_Language.Font = new Font("Arial", 9f, FontStyle.Regular, GraphicsUnit.Point, 0);
+            this.comboBox_Language.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboBox_Language.FormattingEnabled = true;
-            this.comboBox_Language.Items.AddRange(new object[]
-            {
-                "English",
-                "简体中文",
-                "日本語",
-                "Français",
-                "Italian",
-                "German"
-            });
-            this.comboBox_Language.Location = new Point(91, 595);
+            this.comboBox_Language.Items.AddRange(new object[] {
+            "English",
+            "简体中文",
+            "日本語",
+            "Français",
+            "Italian",
+            "German"});
+            this.comboBox_Language.Location = new System.Drawing.Point(91, 595);
             this.comboBox_Language.Name = "comboBox_Language";
-            this.comboBox_Language.Size = new Size(116, 23);
+            this.comboBox_Language.Size = new System.Drawing.Size(116, 23);
             this.comboBox_Language.TabIndex = 30;
-            this.comboBox_Language.SelectedIndexChanged += new EventHandler(this.comboBox_Language_SelectedIndexChanged);
+            this.comboBox_Language.SelectedIndexChanged += new System.EventHandler(this.comboBox_Language_SelectedIndexChanged);
+            // 
+            // groupBox1
+            // 
             this.groupBox1.Controls.Add(this.label_fan_RPM);
             this.groupBox1.Controls.Add(this.label_laser_power);
             this.groupBox1.Controls.Add(this.label_laser_length);
@@ -3804,125 +4071,148 @@ namespace NejeEngraverApp
             this.groupBox1.Controls.Add(this.label_power);
             this.groupBox1.Controls.Add(this.label_current);
             this.groupBox1.Controls.Add(this.label_temperature);
-            this.groupBox1.Location = new Point(14, 328);
+            this.groupBox1.Location = new System.Drawing.Point(14, 328);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new Size(198, 232);
+            this.groupBox1.Size = new System.Drawing.Size(198, 232);
             this.groupBox1.TabIndex = 31;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "info";
+            // 
+            // label_fan_RPM
+            // 
             this.label_fan_RPM.AutoSize = true;
-            this.label_fan_RPM.Location = new Point(18, 201);
+            this.label_fan_RPM.Location = new System.Drawing.Point(18, 201);
             this.label_fan_RPM.Name = "label_fan_RPM";
-            this.label_fan_RPM.Size = new Size(67, 15);
+            this.label_fan_RPM.Size = new System.Drawing.Size(61, 15);
             this.label_fan_RPM.TabIndex = 34;
             this.label_fan_RPM.Text = "风扇转速：";
+            // 
+            // label_laser_power
+            // 
             this.label_laser_power.AutoSize = true;
-            this.label_laser_power.Location = new Point(18, 177);
+            this.label_laser_power.Location = new System.Drawing.Point(18, 177);
             this.label_laser_power.Name = "label_laser_power";
-            this.label_laser_power.Size = new Size(67, 15);
+            this.label_laser_power.Size = new System.Drawing.Size(61, 15);
             this.label_laser_power.TabIndex = 33;
             this.label_laser_power.Text = "激光功率：";
+            // 
+            // label_laser_length
+            // 
             this.label_laser_length.AutoSize = true;
-            this.label_laser_length.Location = new Point(18, 153);
+            this.label_laser_length.Location = new System.Drawing.Point(18, 153);
             this.label_laser_length.Name = "label_laser_length";
-            this.label_laser_length.Size = new Size(67, 15);
+            this.label_laser_length.Size = new System.Drawing.Size(61, 15);
             this.label_laser_length.TabIndex = 32;
             this.label_laser_length.Text = "激光波长：";
-            this.label_connection_logo.Image = Resources.connecting;
-            this.label_connection_logo.Location = new Point(28, 9);
+            // 
+            // label_connection_logo
+            // 
+            this.label_connection_logo.Image = global::NejeEngraverApp.Properties.Resources.connecting;
+            this.label_connection_logo.Location = new System.Drawing.Point(28, 9);
             this.label_connection_logo.Name = "label_connection_logo";
-            this.label_connection_logo.Size = new Size(32, 32);
+            this.label_connection_logo.Size = new System.Drawing.Size(32, 32);
             this.label_connection_logo.TabIndex = 38;
+            // 
+            // timer_check_send_pic
+            // 
             this.timer_check_send_pic.Interval = 10000;
-            this.timer_check_send_pic.Tick += new EventHandler(this.timer_check_send_pic_Tick);
-            this.statusStrip1.Items.AddRange(new ToolStripItem[]
-            {
-                this.StatusLabel_state
-            });
-            this.statusStrip1.Location = new Point(0, 629);
+            this.timer_check_send_pic.Tick += new System.EventHandler(this.timer_check_send_pic_Tick);
+            // 
+            // statusStrip1
+            // 
+            this.statusStrip1.Items.AddRange(new ToolStripItem[] {
+            this.StatusLabel_state});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 629);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new Size(1101, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(1101, 22);
             this.statusStrip1.SizingGrip = false;
             this.statusStrip1.TabIndex = 39;
             this.statusStrip1.Text = "statusStrip1";
+            // 
+            // StatusLabel_state
+            // 
             this.StatusLabel_state.Name = "StatusLabel_state";
-            this.StatusLabel_state.Size = new Size(48, 17);
+            this.StatusLabel_state.Size = new System.Drawing.Size(42, 17);
             this.StatusLabel_state.Text = "State : ";
+            // 
+            // Form_Main
+            // 
             this.AllowDrop = true;
-            base.AutoScaleMode = AutoScaleMode.None;
-            base.ClientSize = new Size(1101, 651);
-            base.Controls.Add(this.statusStrip1);
-            base.Controls.Add(this.label_connection_logo);
-            base.Controls.Add(this.groupBox1);
-            base.Controls.Add(this.comboBox_Language);
-            base.Controls.Add(this.label1);
-            base.Controls.Add(this.label_software_version);
-            base.Controls.Add(this.button_driver);
-            base.Controls.Add(this.tabControl1);
-            base.Controls.Add(this.label_Connection);
-            base.Controls.Add(this.textBox1);
-            this.Font = new Font("Arial", 9f, FontStyle.Regular, GraphicsUnit.Point, 0);
-            base.FormBorderStyle = FormBorderStyle.FixedSingle;
-            base.Icon = NejeEngraverApp.Properties.Form_Loading.Icon;
-            base.Margin = new Padding(3, 5, 3, 5);
-            base.MaximizeBox = false;
-            base.Name = "Form_Main";
-            base.StartPosition = FormStartPosition.CenterScreen;
+            this.AutoScaleMode = AutoScaleMode.None;
+            this.ClientSize = new System.Drawing.Size(1101, 651);
+            this.Controls.Add(this.statusStrip1);
+            this.Controls.Add(this.label_connection_logo);
+            this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.comboBox_Language);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.label_software_version);
+            this.Controls.Add(this.button_driver);
+            this.Controls.Add(this.tabControl1);
+            this.Controls.Add(this.label_Connection);
+            this.Controls.Add(this.textBox1);
+            this.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            this.Icon = global::NejeEngraverApp.Properties.Form_Loading.Icon;
+            this.Margin = new Padding(3, 5, 3, 5);
+            this.MaximizeBox = false;
+            this.Name = "Form_Main";
+            this.StartPosition = FormStartPosition.CenterScreen;
             this.Text = "NEJE";
-            base.Load += new EventHandler(this.Form1_Load);
-            ((ISupportInitialize)this.trackBar_carveTime).EndInit();
+            this.Load += new System.EventHandler(this.Form1_Load);
+            ((ISupportInitialize)(this.trackBar_carveTime)).EndInit();
             this.tabControl1.ResumeLayout(false);
             this.tabPage0.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
-            ((ISupportInitialize)this.pictureBox2).EndInit();
+            ((ISupportInitialize)(this.pictureBox2)).EndInit();
             this.contextMenu1.ResumeLayout(false);
-            ((ISupportInitialize)this.pictureBox3).EndInit();
-            ((ISupportInitialize)this.pictureBox4).EndInit();
-            ((ISupportInitialize)this.pictureBox5).EndInit();
-            ((ISupportInitialize)this.pictureBox6).EndInit();
-            ((ISupportInitialize)this.pictureBox7).EndInit();
-            ((ISupportInitialize)this.pictureBox8).EndInit();
-            ((ISupportInitialize)this.pictureBox9).EndInit();
-            ((ISupportInitialize)this.pictureBox10).EndInit();
-            ((ISupportInitialize)this.pictureBox11).EndInit();
-            ((ISupportInitialize)this.pictureBox12).EndInit();
-            ((ISupportInitialize)this.pictureBox13).EndInit();
+            ((ISupportInitialize)(this.pictureBox3)).EndInit();
+            ((ISupportInitialize)(this.pictureBox4)).EndInit();
+            ((ISupportInitialize)(this.pictureBox5)).EndInit();
+            ((ISupportInitialize)(this.pictureBox6)).EndInit();
+            ((ISupportInitialize)(this.pictureBox7)).EndInit();
+            ((ISupportInitialize)(this.pictureBox8)).EndInit();
+            ((ISupportInitialize)(this.pictureBox9)).EndInit();
+            ((ISupportInitialize)(this.pictureBox10)).EndInit();
+            ((ISupportInitialize)(this.pictureBox11)).EndInit();
+            ((ISupportInitialize)(this.pictureBox12)).EndInit();
+            ((ISupportInitialize)(this.pictureBox13)).EndInit();
             this.tabPage3.ResumeLayout(false);
             this.tabPage3.PerformLayout();
-            ((ISupportInitialize)this.pictureBox14).EndInit();
+            ((ISupportInitialize)(this.pictureBox14)).EndInit();
             this.contextMenu2.ResumeLayout(false);
-            ((ISupportInitialize)this.pictureBox15).EndInit();
-            ((ISupportInitialize)this.pictureBox16).EndInit();
-            ((ISupportInitialize)this.pictureBox17).EndInit();
-            ((ISupportInitialize)this.pictureBox18).EndInit();
-            ((ISupportInitialize)this.pictureBox19).EndInit();
-            ((ISupportInitialize)this.pictureBox20).EndInit();
-            ((ISupportInitialize)this.pictureBox21).EndInit();
-            ((ISupportInitialize)this.pictureBox22).EndInit();
-            ((ISupportInitialize)this.pictureBox23).EndInit();
-            ((ISupportInitialize)this.pictureBox24).EndInit();
-            ((ISupportInitialize)this.pictureBox25).EndInit();
+            ((ISupportInitialize)(this.pictureBox15)).EndInit();
+            ((ISupportInitialize)(this.pictureBox16)).EndInit();
+            ((ISupportInitialize)(this.pictureBox17)).EndInit();
+            ((ISupportInitialize)(this.pictureBox18)).EndInit();
+            ((ISupportInitialize)(this.pictureBox19)).EndInit();
+            ((ISupportInitialize)(this.pictureBox20)).EndInit();
+            ((ISupportInitialize)(this.pictureBox21)).EndInit();
+            ((ISupportInitialize)(this.pictureBox22)).EndInit();
+            ((ISupportInitialize)(this.pictureBox23)).EndInit();
+            ((ISupportInitialize)(this.pictureBox24)).EndInit();
+            ((ISupportInitialize)(this.pictureBox25)).EndInit();
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
             this.panel_Laser_PWM.ResumeLayout(false);
             this.panel_Laser_PWM.PerformLayout();
-            ((ISupportInitialize)this.trackBar_PWM).EndInit();
+            ((ISupportInitialize)(this.trackBar_PWM)).EndInit();
             this.panel_control.ResumeLayout(false);
             this.panel_control.PerformLayout();
-            ((ISupportInitialize)this.numericUpDown_times).EndInit();
+            ((ISupportInitialize)(this.numericUpDown_times)).EndInit();
             this.panel_direction.ResumeLayout(false);
             this.groupBox_InsertText.ResumeLayout(false);
             this.groupBox_InsertText.PerformLayout();
             this.panel_size.ResumeLayout(false);
             this.panel_size.PerformLayout();
-            ((ISupportInitialize)this.pictureBox1).EndInit();
+            ((ISupportInitialize)(this.pictureBox1)).EndInit();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
-            base.ResumeLayout(false);
-            base.PerformLayout();
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
         }
     }
 }
